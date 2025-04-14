@@ -47,29 +47,36 @@ def init_db():
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = request.form['username']
+        user = request.form['username'].strip()
         pwd = request.form['password']
 
         conn = sqlite3.connect('database.db')
         c = conn.cursor()
 
-        # ⚠️ SQL Injection VULNERABLE code — do not use in real apps!
-        query = f"SELECT * FROM users WHERE username = '{user}' AND password = '{pwd}'"
-        print("Executing Query:", query)  # for debugging
+        # Only filter by username, not password
+        query = f"SELECT username, password FROM users WHERE username = '{user}'"
+        print("Executing Query:", query)
 
-        result = c.fetchone()
+        try:
+            c.execute(query)
+            result = c.fetchone()
+        except Exception as e:
+            conn.close()
+            return f"SQL Error: {e}"
+
         conn.close()
 
         if result:
-            print("User found:", result[0])
-            print("Stored hash:", result[1])
-            print("Password match:", bcrypt.check_password_hash(result[1], pwd))
-            
-        if result and bcrypt.check_password_hash(result[1], pwd):
-            session['username'] = result[0]
-            return redirect(url_for('welcome'))
-        else:
-            return "Login failed — invalid credentials!"
+            username_db, hashed_pwd = result
+            print("User found:", username_db)
+            print("Stored hash:", hashed_pwd)
+            print("Password match:", bcrypt.check_password_hash(hashed_pwd, pwd))
+
+            if bcrypt.check_password_hash(hashed_pwd, pwd):
+                session['username'] = username_db
+                return redirect(url_for('welcome'))
+
+        return "Login failed — invalid credentials!"
 
     # return '''
     #     <form method="POST">
