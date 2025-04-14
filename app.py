@@ -57,16 +57,15 @@ def login():
         query = f"SELECT * FROM users WHERE username = '{user}' AND password = '{pwd}'"
         print("Executing Query:", query)  # for debugging
 
-        try:
-            c.execute(query)
-            result = c.fetchone()
-        except Exception as e:
-            conn.close()
-            return f"SQL Error: {e}"
-
+        result = c.fetchone()
         conn.close()
 
         if result:
+            print("User found:", result[0])
+            print("Stored hash:", result[1])
+            print("Password match:", bcrypt.check_password_hash(result[1], pwd))
+            
+        if result and bcrypt.check_password_hash(result[1], pwd):
             session['username'] = result[0]
             return redirect(url_for('welcome'))
         else:
