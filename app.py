@@ -54,7 +54,7 @@ def login():
         c = conn.cursor()
 
         # ⚠️ SQL Injection VULNERABLE code — do not use in real apps
-        query = f"SELECT * FROM users WHERE username = '{user}' AND password = '{pwd}'"
+        query = f"SELECT * FROM users WHERE username = '{user}'"
         print("Executing Query:", query)  # for debugging
 
         try:
