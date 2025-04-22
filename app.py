@@ -53,9 +53,9 @@ def login():
         conn = sqlite3.connect('database.db')
         c = conn.cursor()
 
-        # Only filter by username, not password
-        query = f"SELECT username, password FROM users WHERE username = '{user}'"
-        print("Executing Query:", query)
+        # ⚠️ SQL Injection VULNERABLE code — do not use in real apps
+        query = f"SELECT * FROM users WHERE username = '{user}' AND password = '{pwd}'"
+        print("Executing Query:", query)  # for debugging
 
         try:
             c.execute(query)
@@ -74,7 +74,7 @@ def login():
 
             if bcrypt.check_password_hash(hashed_pwd, pwd):
                 session['username'] = username_db
-                return redirect(url_for('welcome'))
+                return redirect(url_for('welcome', username=username_db))
 
         return "Login failed — invalid credentials!"
 
@@ -111,9 +111,16 @@ def register():
 
 @app.route('/welcome')
 def welcome():
-    if 'username' in session:
-        return render_template('welcome.html', username=session['username'])
-    return redirect(url_for('login'))
+    # Get username from query parameter (?username=... in URL)
+    username = request.args.get('username')
+    
+    if username:
+        return f"Welcome, {username}!"  # Display welcome message with username from query param
+    else:
+        # If no username in query param, check session or redirect to login
+        if 'username' in session:
+            return f"Welcome, {session['username']}!"
+        return redirect(url_for('login'))
 
 if __name__ == '__main__':
     init_db()
