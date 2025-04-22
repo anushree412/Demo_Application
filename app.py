@@ -62,7 +62,7 @@ def login():
             result = c.fetchone()
         except Exception as e:
             conn.close()
-            return f"SQL Error: {e}"
+            return f"Error: {e}"
 
         conn.close()
 
