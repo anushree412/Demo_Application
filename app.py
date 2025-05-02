@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_bcrypt import Bcrypt
 import sqlite3
+import html 
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -115,11 +116,14 @@ def welcome():
     username = request.args.get('username')
     
     if username:
-        return f"Welcome, {username}!"  # Display welcome message with username from query param
+        # Sanitize the username to prevent XSS
+        sanitized_username = html.escape(username)
+        return f"Welcome, {sanitized_username}!"  # Display welcome message with sanitized username
     else:
         # If no username in query param, check session or redirect to login
         if 'username' in session:
-            return f"Welcome, {session['username']}!"
+            sanitized_session_username = html.escape(session['username'])
+            return f"Welcome, {sanitized_session_username}!"
         return redirect(url_for('login'))
 
 if __name__ == '__main__':
